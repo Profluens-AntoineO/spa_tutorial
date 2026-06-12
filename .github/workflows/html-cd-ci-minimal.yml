@@ -59,21 +59,34 @@ jobs:
   # ==========================================
   # ÉTAPE 3 : DÉPLOIEMENT TEST (GitHub Pages)
   # ==========================================
+
+
+
+
+
   deploy-to-staging:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    # 🛡️ SÉCURITÉ : Attend impérativement la réussite de la Qualité ET de la Perf
     needs: [quality-check, perf-audit]
     # 🎯 FILTRE : Uniquement si on est sur la branche 'test'
     if: github.event_name == 'push' && github.ref == 'refs/heads/test'
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Déploiement Staging
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          # Upload entire repository
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+
 
   # ==========================================
   # ÉTAPE 4 : DÉPLOIEMENT PROD (Serveur SFTP)
